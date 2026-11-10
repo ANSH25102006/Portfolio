@@ -2,8 +2,9 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
+import dynamic from "next/dynamic";
 
-interface TechStone {
+export interface TechStone {
   name: string;
   badgeName: string;
   category: string;
@@ -12,12 +13,12 @@ interface TechStone {
   logoSvg: React.ReactNode;
 }
 
-interface TechStoneCardProps {
+export interface TechStoneCardProps {
   tech: TechStone;
   idx: number;
 }
 
-function TechStoneCard({ tech, idx }: TechStoneCardProps) {
+export function TechStoneCard({ tech, idx }: TechStoneCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const randomDuration = 5 + (idx % 3) * 0.7;
 
@@ -149,7 +150,23 @@ function TechStoneCard({ tech, idx }: TechStoneCardProps) {
   );
 }
 
+const ThreeTechOrbit = dynamic(
+  () => import("./ThreeTechOrbit"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-[450px] sm:h-[550px] md:h-[650px] flex items-center justify-center bg-black/10 rounded-3xl border border-white/[0.03]">
+        <div className="relative w-12 h-12">
+          <div className="absolute inset-0 rounded-full border border-purple-500/10" />
+          <div className="absolute inset-0 rounded-full border-t border-purple-500 animate-spin" />
+        </div>
+      </div>
+    ),
+  }
+);
+
 export default function TechOrbit() {
+  const [viewMode, setViewMode] = useState<"orbit" | "grid">("orbit");
   const technologies: TechStone[] = [
     {
       name: "HTML5",
@@ -379,12 +396,43 @@ export default function TechOrbit() {
         </p>
       </div>
 
-      {/* Collectible Stones Grid System */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7 gap-6 max-w-[1400px] mx-auto py-6">
-        {technologies.map((tech, idx) => (
-          <TechStoneCard key={tech.name} tech={tech} idx={idx} />
-        ))}
+      {/* Toggle View mode control */}
+      <div className="flex items-center justify-center gap-3 mb-8 select-none">
+        <div className="p-1 rounded-xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-md flex items-center gap-1.5">
+          <button
+            onClick={() => setViewMode("orbit")}
+            className={`px-4 py-2 rounded-lg text-[9px] font-mono font-black uppercase tracking-widest transition-all duration-300 cursor-pointer ${
+              viewMode === "orbit"
+                ? "bg-purple-650 bg-purple-600 text-white shadow-[0_0_15px_rgba(139,92,246,0.35)]"
+                : "text-slate-450 text-slate-400 hover:text-white hover:bg-white/[0.04]"
+            }`}
+          >
+            3D Orbit View
+          </button>
+          <button
+            onClick={() => setViewMode("grid")}
+            className={`px-4 py-2 rounded-lg text-[9px] font-mono font-black uppercase tracking-widest transition-all duration-300 cursor-pointer ${
+              viewMode === "grid"
+                ? "bg-purple-650 bg-purple-600 text-white shadow-[0_0_15px_rgba(139,92,246,0.35)]"
+                : "text-slate-450 text-slate-400 hover:text-white hover:bg-white/[0.04]"
+            }`}
+          >
+            Grid View
+          </button>
+        </div>
       </div>
+
+      {/* Conditional Visual Showcase Render */}
+      {viewMode === "orbit" ? (
+        <ThreeTechOrbit technologies={technologies} />
+      ) : (
+        /* Collectible Stones Grid System */
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7 gap-6 max-w-[1400px] mx-auto py-6">
+          {technologies.map((tech, idx) => (
+            <TechStoneCard key={tech.name} tech={tech} idx={idx} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
